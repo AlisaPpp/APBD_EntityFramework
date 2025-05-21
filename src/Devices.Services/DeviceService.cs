@@ -28,17 +28,19 @@ public class DeviceService : IDeviceService
         
         var currentEmployee = device.DeviceEmployees.FirstOrDefault(e => e.EmployeeId == id);
 
+        var person = currentEmployee?.Employee?.Person;
+        
         var deviceDto = new DeviceByIdDto
         {
             Name = device.Name,
             DeviceType = device.DeviceType.Name,
             IsEnabled = device.IsEnabled,
             AdditionalProperties = JsonSerializer.Deserialize<object>(device.AdditionalProperties) ?? new {},
-            CurrentEmployee = currentEmployee?.Employee?.Person != null
+            CurrentEmployee = person != null
                 ? new AllEmployeesDto
                 {
                     Id = currentEmployee.Id,
-                    FullName = $"{currentEmployee.Employee.Person.FirstName} {currentEmployee.Employee.Person.MiddleName} {currentEmployee.Employee.Person.LastName}"
+                    FullName = $"{person.FirstName} {person.MiddleName} {person.LastName}"
                 }
                 : null
         };
