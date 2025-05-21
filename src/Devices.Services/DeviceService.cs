@@ -1,6 +1,6 @@
-﻿using Devices.API;
+﻿using System.Text.Json;
+using Devices.API;
 using Devices.Repositories;
-using Devices.Entities;
 using Devices.Entities.DTOs;
 
 namespace Devices.Services;
@@ -23,7 +23,8 @@ public class DeviceService : IDeviceService
     public async Task<DeviceByIdDto?> GetDeviceById(int id, CancellationToken token)
     {
         var device = await _deviceRepository.GetDeviceByIdAsync(id, token);
-        if (device == null) return null;
+        if (device == null) 
+            throw new KeyNotFoundException($"Device with id {id} not found");
         
         var currentEmployee = device.DeviceEmployees.FirstOrDefault(e => e.EmployeeId == id);
 
@@ -32,13 +33,12 @@ public class DeviceService : IDeviceService
             Name = device.Name,
             DeviceType = device.DeviceType.Name,
             IsEnabled = device.IsEnabled,
-            AdditionalProperties = device.AdditionalProperties.ToString() ?? "{}",
-            CurrentEmployee = currentEmployee != null
+            AdditionalProperties = JsonSerializer.Deserialize<object>(device.AdditionalProperties) ?? new {},
+            CurrentEmployee = currentEmployee?.Employee?.Person != null
                 ? new AllEmployeesDto
                 {
                     Id = currentEmployee.Id,
-                    FullName =
-                        $"{currentEmployee.Employee.Person.FirstName} {currentEmployee.Employee.Person.MiddleName} {currentEmployee.Employee.Person.LastName}"
+                    FullName = $"{currentEmployee.Employee.Person.FirstName} {currentEmployee.Employee.Person.MiddleName} {currentEmployee.Employee.Person.LastName}"
                 }
                 : null
         };
@@ -51,13 +51,13 @@ public class DeviceService : IDeviceService
         if (deviceDto.DeviceType == null) throw new ArgumentException("Device type cannot be null");
         
         var deviceType = await _deviceRepository.GetDeviceTypeByNameAsync(deviceDto.DeviceType, token);
-        if (deviceType == null) throw new ArgumentException("Device type cannot be null");
+        if (deviceType == null) throw new ArgumentException("Device type is invalid");
         var device = new Device
         {
             Name = deviceDto.Name,
             DeviceType = deviceType,
             IsEnabled = deviceDto.IsEnabled,
-            AdditionalProperties = deviceDto.AdditionalProperties.ToString() ?? "{}"
+            AdditionalProperties = JsonSerializer.Serialize(deviceDto.AdditionalProperties)
         };
         
         return await _deviceRepository.CreateDeviceAsync(device, token);
@@ -71,13 +71,13 @@ public class DeviceService : IDeviceService
         if (deviceDto.Name == null) throw new ArgumentException("Device name cannot be null");
         if (deviceDto.DeviceType == null) throw new ArgumentException("Device type cannot be null");
         var deviceType = await _deviceRepository.GetDeviceTypeByNameAsync(deviceDto.DeviceType, token);
-        if (deviceType == null) throw new ArgumentException("Device type cannot be null");
+        if (deviceType == null) throw new ArgumentException("Device type is invalid");
         var device = new Device
         {
             Name = deviceDto.Name,
             DeviceType = deviceType,
             IsEnabled = deviceDto.IsEnabled,
-            AdditionalProperties = deviceDto.AdditionalProperties.ToString() ?? "{}"
+            AdditionalProperties = JsonSerializer.Serialize(deviceDto.AdditionalProperties)
         };
         return await _deviceRepository.UpdateDeviceAsync(id, device, token);
     }
@@ -85,7 +85,7 @@ public class DeviceService : IDeviceService
     public async Task<bool> DeleteDevice(int id, CancellationToken token)
     {
         if (await _deviceRepository.GetDeviceByIdAsync(id, token) == null) 
-            throw new KeyNotFoundException("Device not found");
+            throw new KeyNotFoundException($"Device with id {id} not found");
         return await _deviceRepository.DeleteDeviceAsync(id, token);
     }
 

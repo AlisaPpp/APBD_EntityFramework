@@ -45,9 +45,11 @@ app.MapGet("/api/devices/{id}", async (IDeviceService deviceService, int id, Can
     try
     {
         var device = await deviceService.GetDeviceById(id, token);
-        if (device == null)
-            return Results.NotFound($"Device with Id {id} not found.");
         return Results.Ok(device);
+    }
+    catch (KeyNotFoundException ex)
+    {
+        return Results.NotFound(ex.Message);
     }
     catch (Exception ex)
     {
@@ -62,9 +64,9 @@ app.MapPost("/api/devices", async (IDeviceService deviceService, CancellationTok
         await deviceService.CreateDevice(deviceDto, token);
         return Results.Created();
     }
-    catch (Exception ex)
+    catch (ArgumentException ex)
     {
-        return Results.Problem(ex.Message);
+        return Results.BadRequest(ex.Message);
     }
 });
 
@@ -75,9 +77,13 @@ app.MapPut("/api/devices/{id}", async (IDeviceService deviceService, Cancellatio
         await deviceService.UpdateDevice(id, deviceDto, token);
         return Results.Ok();
     }
-    catch (Exception ex)
+    catch (KeyNotFoundException ex)
     {
-        return Results.Problem(ex.Message);
+        return Results.NotFound(ex.Message);
+    }
+    catch (ArgumentException ex)
+    {
+        return Results.BadRequest(ex.Message);
     }
 });
 
@@ -87,6 +93,10 @@ app.MapDelete("/api/devices/{id}", async (IDeviceService deviceService, int id, 
     {
         await deviceService.DeleteDevice(id, token);
         return Results.Ok();
+    }
+    catch (KeyNotFoundException ex)
+    {
+        return Results.NotFound(ex.Message);
     }
     catch (Exception ex)
     {
