@@ -12,7 +12,7 @@ public class EmployeeRepository : IEmployeeRepository
         _context = context;
     }
 
-    public async Task<List<Employee>> GetAllEmployeesAsync(CancellationToken token)
+    public async Task<IEnumerable<Employee>> GetAllEmployeesAsync(CancellationToken token)
     {
         try
         {

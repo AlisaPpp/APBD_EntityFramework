@@ -4,7 +4,7 @@ namespace Devices.Repositories;
 
 public interface IDeviceRepository
 {
-    public Task<List<Device>> GetAllDevicesAsync(CancellationToken token);
+    public Task<IEnumerable<Device>> GetAllDevicesAsync(CancellationToken token);
     public Task<Device?> GetDeviceByIdAsync(int id, CancellationToken token);
     public Task<bool> CreateDeviceAsync(Device device, CancellationToken token);
     public Task<bool> UpdateDeviceAsync(int id, Device device, CancellationToken token);

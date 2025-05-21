@@ -4,6 +4,6 @@ namespace Devices.Services;
 
 public interface IEmployeeService
 {
-    public Task<List<AllEmployeesDto>> GetAllEmployees(CancellationToken token);
+    public Task<IEnumerable<AllEmployeesDto>> GetAllEmployees(CancellationToken token);
     public Task<EmployeeByIdDto?> GetEmployeeById(int id, CancellationToken token);
 }

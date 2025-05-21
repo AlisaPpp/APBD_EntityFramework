@@ -12,7 +12,7 @@ public class DeviceRepository : IDeviceRepository
         _context = context;
     }
 
-    public async Task<List<Device>> GetAllDevicesAsync(CancellationToken token)
+    public async Task<IEnumerable<Device>> GetAllDevicesAsync(CancellationToken token)
     {
         try
         {

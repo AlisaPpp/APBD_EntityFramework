@@ -13,7 +13,7 @@ public class EmployeeService : IEmployeeService
         _employeeRepository = employeeRepository;
     }
 
-    public async Task<List<AllEmployeesDto>> GetAllEmployees(CancellationToken token)
+    public async Task<IEnumerable<AllEmployeesDto>> GetAllEmployees(CancellationToken token)
     {
         var employees = await _employeeRepository.GetAllEmployeesAsync(token);
         return employees.Select(MapToDto).ToList();

@@ -14,7 +14,7 @@ public class DeviceService : IDeviceService
         _deviceRepository = deviceRepository;
     }
 
-    public async Task<List<AllDevicesDto>> GetAllDevices(CancellationToken token)
+    public async Task<IEnumerable<AllDevicesDto>> GetAllDevices(CancellationToken token)
     {
         var devices = await _deviceRepository.GetAllDevicesAsync(token);
         return devices.Select(MapToDto).ToList();
