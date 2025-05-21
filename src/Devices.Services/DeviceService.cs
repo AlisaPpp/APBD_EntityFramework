@@ -65,6 +65,9 @@ public class DeviceService : IDeviceService
 
     public async Task<bool> UpdateDevice(int id, CreateDeviceDto deviceDto, CancellationToken token)
     {
+        if (await _deviceRepository.GetDeviceByIdAsync(id, token) == null) 
+            throw new KeyNotFoundException("Device not found");
+        
         if (deviceDto.Name == null) throw new ArgumentException("Device name cannot be null");
         if (deviceDto.DeviceType == null) throw new ArgumentException("Device type cannot be null");
         var deviceType = await _deviceRepository.GetDeviceTypeByNameAsync(deviceDto.DeviceType, token);
@@ -81,6 +84,8 @@ public class DeviceService : IDeviceService
 
     public async Task<bool> DeleteDevice(int id, CancellationToken token)
     {
+        if (await _deviceRepository.GetDeviceByIdAsync(id, token) == null) 
+            throw new KeyNotFoundException("Device not found");
         return await _deviceRepository.DeleteDeviceAsync(id, token);
     }
 
