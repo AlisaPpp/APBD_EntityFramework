@@ -1,5 +1,4 @@
 using Devices.API;
-using Devices.Entities.DTOs;
 using Microsoft.EntityFrameworkCore;
 
 namespace Devices.Repositories;

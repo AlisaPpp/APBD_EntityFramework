@@ -31,6 +31,7 @@ public class DeviceService : IDeviceService
         {
             Name = device.Name,
             DeviceType = device.DeviceType.Name,
+            IsEnabled = device.IsEnabled,
             AdditionalProperties = device.AdditionalProperties.ToString() ?? "{}",
             CurrentEmployee = currentEmployee != null
                 ? new AllEmployeesDto

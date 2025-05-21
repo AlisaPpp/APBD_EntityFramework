@@ -32,6 +32,7 @@ public class EmployeeRepository : IEmployeeRepository
         {
             return await _context.Employees
                 .Include(p => p.Person)
+                .Include(p => p.Position)
                 .FirstOrDefaultAsync(p => p.Id == id, token);
         }
         catch (Exception ex)
