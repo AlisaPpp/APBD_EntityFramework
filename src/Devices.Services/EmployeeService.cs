@@ -4,7 +4,7 @@ using Devices.Repositories;
 
 namespace Devices.Services;
 
-public class EmployeeService
+public class EmployeeService : IEmployeeService
 {
     private readonly IEmployeeRepository _employeeRepository;
 
