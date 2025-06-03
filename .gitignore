@@ -5,7 +5,6 @@
 # .NET Core build folders
 bin/
 obj/
-.idea/*
 
 # Common node modules locations
 /node_modules
@@ -489,6 +488,7 @@ FodyWeavers.xsd
 *.sln.iml
 
 appsettings.*
+.idea/
 
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio

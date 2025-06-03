@@ -1,5 +1,4 @@
 using Devices.API;
-using Devices.Repositories;
 using Devices.Services;
 using Devices.Entities.DTOs;
 using Microsoft.EntityFrameworkCore;
@@ -8,8 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("PersonalDatabase") ?? 
                        throw new InvalidOperationException("Personal connection string not found");
 builder.Services.AddDbContext<DeviceDbContext>(options => options.UseSqlServer(connectionString));
-builder.Services.AddTransient<IDeviceRepository, DeviceRepository>();
-builder.Services.AddTransient<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddTransient<IDeviceService, DeviceService>();
 builder.Services.AddTransient<IEmployeeService, EmployeeService>();
 

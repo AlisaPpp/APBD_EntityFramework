@@ -8,7 +8,10 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Devices.Entities\Devices.Entities.csproj" />
-      <ProjectReference Include="..\Devices.Repositories\Devices.Repositories.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.16" />
     </ItemGroup>
 
 </Project>

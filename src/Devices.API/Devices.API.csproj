@@ -20,7 +20,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Devices.Entities\Devices.Entities.csproj" />
-      <ProjectReference Include="..\Devices.Repositories\Devices.Repositories.csproj" />
       <ProjectReference Include="..\Devices.Services\Devices.Services.csproj" />
     </ItemGroup>
 
