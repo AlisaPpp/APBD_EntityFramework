@@ -26,6 +26,11 @@ public partial class DeviceDbContext : DbContext
     public virtual DbSet<Person> People { get; set; }
 
     public virtual DbSet<Position> Positions { get; set; }
+    public virtual DbSet<Account> Accounts { get; set; }
+    public virtual DbSet<Role> Roles { get; set; }
+    
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseSqlServer("Server=localhost,1433; Database=master; User Id=sa; Password=XfcjKbcN376;Encrypt=True;TrustServerCertificate=True;");
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -132,6 +137,50 @@ public partial class DeviceDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Account>(entity =>
+        {
+            entity.ToTable("Account");
+
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Username)
+                .HasMaxLength(100)
+                .IsRequired();
+            
+            entity.Property(e => e.Password)
+                .HasMaxLength(100)
+                .IsRequired();
+            
+            entity.Property(e => e.EmployeeId)
+                .IsRequired();
+            
+            entity.Property(e => e.RoleId)
+                .IsRequired();
+            
+            entity.HasOne(e => e.Employee)
+                .WithMany()
+                .HasForeignKey(e => e.EmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        
+            entity.HasOne(e => e.Role)
+                .WithMany(r => r.Accounts)
+                .HasForeignKey(e => e.RoleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+        });
+
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.ToTable("Role");
+            
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsRequired();
         });
 
         OnModelCreatingPartial(modelBuilder);

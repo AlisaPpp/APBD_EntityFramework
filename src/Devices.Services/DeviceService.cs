@@ -38,7 +38,7 @@ public class DeviceService : IDeviceService
                 .ThenInclude(x => x.Person)
                 .FirstOrDefaultAsync(x => x.Id == id, token);
             if (device == null)
-                throw new KeyNotFoundException($"Device with id {id} not found");
+                return null;
         
             var currentEmployee = device.DeviceEmployees.FirstOrDefault(e => e.EmployeeId == id);
 

@@ -37,7 +37,8 @@ public class EmployeeService : IEmployeeService
                 .Include(p => p.Person)
                 .Include(p => p.Position)
                 .FirstOrDefaultAsync(p => p.Id == id, token);
-            if (employee == null) return null;
+            if (employee == null) 
+                return null;
             return new EmployeeByIdDto
             {
                 PersonInfo = new PersonInfoDto
