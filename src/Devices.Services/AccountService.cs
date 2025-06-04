@@ -56,7 +56,7 @@ public class AccountService : IAccountService
             var role = await _context.Roles.Where(role => role.Name == createAccountDto.Role)
                 .FirstOrDefaultAsync(token);
             if (role == null)
-                throw new KeyNotFoundException($"Role {createAccountDto.Role} not found");
+                throw new ArgumentException($"Role {createAccountDto.Role} is not valid");
 
             var employee = await _context.Employees.Where(e => e.Person.Email == createAccountDto.Email)
                 .FirstOrDefaultAsync(token);
@@ -79,6 +79,65 @@ public class AccountService : IAccountService
         catch (Exception ex)
         {
             throw new ApplicationException($"Error creating account", ex);
+        }
+    }
+
+    public async Task<bool> UpdateAccount(int id, bool isAdmin, CreateAccountDto updateAccountDto, CancellationToken token)
+    {
+        if (updateAccountDto.Username == null)
+            throw new ArgumentException("Username cannot be null");
+        if (updateAccountDto.Password == null)
+            throw new ArgumentException("Password cannot be null");
+
+        try
+        {
+            var account = await _context.Accounts
+                .Include(a => a.Role)
+                .Include(a => a.Employee)
+                .FirstOrDefaultAsync(a => a.Id == id, token);
+            if (account == null)
+                throw new KeyNotFoundException($"Account with id {id} not found");
+
+            account.Username = updateAccountDto.Username;
+            account.Password = _passwordHasher.HashPassword(account, updateAccountDto.Password);
+
+            if (isAdmin)
+            {
+                var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == updateAccountDto.Role, token);
+                if (role == null)
+                    throw new ArgumentException($"Role {updateAccountDto.Role} is not valid");
+                account.Role = role;
+            }
+
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Person.Email == updateAccountDto.Email, token);
+            if (employee == null)
+                throw new KeyNotFoundException($"Employee with {updateAccountDto.Email} not found");
+            account.Employee = employee;
+
+            await _context.SaveChangesAsync(token);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException($"Error updating account", ex);
+        }
+    }
+
+
+    public async Task<bool> DeleteAccount(int id, CancellationToken token)
+    {
+        var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == id, token);
+        if (account == null)
+            throw new KeyNotFoundException($"Account with id {id} not found");
+        try
+        {
+            _context.Accounts.Remove(account);
+            await _context.SaveChangesAsync(token);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException($"Error deleting account", ex);
         }
     }
     

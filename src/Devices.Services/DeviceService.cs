@@ -40,7 +40,7 @@ public class DeviceService : IDeviceService
             if (device == null)
                 return null;
         
-            var currentEmployee = device.DeviceEmployees.FirstOrDefault(e => e.EmployeeId == id);
+            var currentEmployee = device.DeviceEmployees.FirstOrDefault();
 
             var person = currentEmployee?.Employee?.Person;
         
@@ -145,7 +145,6 @@ public class DeviceService : IDeviceService
         }
     }
 
-
     private AllDevicesDto MapToDto(Device device)
     {
         return new AllDevicesDto
@@ -153,5 +152,18 @@ public class DeviceService : IDeviceService
             Id = device.Id,
             Name = device.Name
         };
+    }
+    
+    public async Task<bool> IsDeviceAssignedToUser(int deviceId, int accountId, CancellationToken token)
+    {
+        var account = await _context.Accounts
+            .Include(a => a.Employee)
+            .ThenInclude(e => e.DeviceEmployees)
+            .FirstOrDefaultAsync(a => a.Id == accountId, token);
+
+        if (account == null || account.Employee == null)
+            return false;
+
+        return account.Employee.DeviceEmployees.Any(de => de.DeviceId == deviceId);
     }
 }

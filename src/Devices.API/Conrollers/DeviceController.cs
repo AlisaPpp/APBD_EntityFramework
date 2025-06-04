@@ -1,6 +1,9 @@
+using System.Security.Claims;
 using Devices.Entities.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Devices.Services;
+using Microsoft.AspNetCore.Authorization;
+
 namespace Devices.API;
 
 [ApiController]
@@ -16,6 +19,7 @@ public class DeviceController : ControllerBase
 
     [HttpGet]
     [Route("/api/devices")]
+    [Authorize(Roles = "Admin")]
     public async Task<IResult> GetAllDevices(CancellationToken token)
     {
         try
@@ -31,14 +35,26 @@ public class DeviceController : ControllerBase
 
     [HttpGet]
     [Route("/api/devices/{id}")]
+    [Authorize(Roles = "Admin,User")]
     public async Task<IResult> GetDeviceById(int id, CancellationToken token)
     {
         try
         {
-            var device = await _deviceService.GetDeviceById(id, token);
-            if (device == null)
-                return Results.NotFound($"Device with Id {id} not found.");
-            return Results.Ok(device);
+            var currentUser = User.FindFirst(ClaimTypes.Actor)?.Value;
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (currentRole == "Admin")
+            {
+                var device = await _deviceService.GetDeviceById(id, token);
+                if (device == null)
+                    return Results.NotFound($"Device with Id {id} not found.");
+                return Results.Ok(device);
+            }
+            
+            var hasAccess = await _deviceService.IsDeviceAssignedToUser(id, int.Parse(currentUser), token);
+            if (!hasAccess)
+                return Results.Unauthorized();
+            var userDevice = await _deviceService.GetDeviceById(id, token);
+            return Results.Ok(userDevice);
         }
         catch (Exception ex)
         {
@@ -48,6 +64,7 @@ public class DeviceController : ControllerBase
 
     [HttpPost]
     [Route("/api/devices")]
+    [Authorize(Roles = "Admin")]
     public async Task<IResult> AddDevice(CreateDeviceDto deviceDto, CancellationToken token)
     {
         try
@@ -63,10 +80,19 @@ public class DeviceController : ControllerBase
 
     [HttpPut]
     [Route("/api/devices/{id}")]
+    [Authorize(Roles = "Admin, User")]
     public async Task<IResult> UpdateDevice(int id, CreateDeviceDto deviceDto, CancellationToken token)
     {
         try
         {
+            var currentUser = User.FindFirst(ClaimTypes.Actor)?.Value;
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (currentRole != "Admin")
+            {
+                var hasAccess = await _deviceService.IsDeviceAssignedToUser(id, int.Parse(currentUser), token);
+                if (!hasAccess)
+                    return Results.Unauthorized();
+            }
             await _deviceService.UpdateDevice(id, deviceDto, token);
             return Results.Ok();
         }
@@ -82,6 +108,7 @@ public class DeviceController : ControllerBase
 
     [HttpDelete]
     [Route("/api/devices/{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IResult> DeleteDevice(int id, CancellationToken token)
     {
         try

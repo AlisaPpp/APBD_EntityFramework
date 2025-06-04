@@ -43,6 +43,7 @@ public class AuthController : ControllerBase
         var accessToken = new TokenResponseDto
         {
             AccessToken = _tokenService.GenerateToken(
+                foundUser.Id,
                 foundUser.Username,
                 foundUser.Role.Name
             )

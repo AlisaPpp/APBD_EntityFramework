@@ -29,9 +29,6 @@ public partial class DeviceDbContext : DbContext
     public virtual DbSet<Account> Accounts { get; set; }
     public virtual DbSet<Role> Roles { get; set; }
     
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Server=localhost,1433; Database=master; User Id=sa; Password=XfcjKbcN376;Encrypt=True;TrustServerCertificate=True;");
-    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Device>(entity =>

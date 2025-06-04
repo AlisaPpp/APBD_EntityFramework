@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Devices.Services;
 using Devices.Entities;
@@ -34,16 +35,22 @@ public class AccountController : ControllerBase
     }
     
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, User")]
     [Route("/api/accounts/{id}")]
     public async Task<IResult> GetAccountById(int id, CancellationToken token)
     {
         try
         {
-            var account = await _accountService.GetAccountById(id, token);
-            if (account == null)
-                return Results.NotFound($"Account with Id {id} not found.");
-            return Results.Ok(account);
+            var currentUser = User.FindFirst(ClaimTypes.Actor)?.Value;
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (currentRole == "Admin" || currentUser.Equals(id.ToString()))
+            {
+                var account = await _accountService.GetAccountById(id, token);
+                if (account == null)
+                    return Results.NotFound($"Account with Id {id} not found.");
+                return Results.Ok(account);
+            }
+            return Results.Unauthorized();
         }
         catch (Exception ex)
         {
@@ -60,6 +67,69 @@ public class AccountController : ControllerBase
         {
             await _accountService.CreateAccount(accountDto, token);
             return Results.Created();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return Results.NotFound(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(ex.Message);
+        }
+    }
+
+    [HttpPut]
+    [Authorize(Roles = "Admin,User")]
+    [Route("/api/accounts/{id}")]
+    public async Task<IResult> UpdateAccount(int id, CreateAccountDto accountDto, CancellationToken token)
+    {
+        try
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.Actor)?.Value;
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (currentRole == "Admin" || currentUserId.Equals(id.ToString()))
+            {
+                if (currentRole != "Admin")
+                    accountDto.Role = null;
+                
+                await _accountService.UpdateAccount(id, currentRole == "Admin", accountDto, token);
+                return Results.Ok();
+            }
+            return Results.Unauthorized();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return Results.NotFound(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+    }
+
+    [HttpDelete]
+    [Authorize(Roles = "Admin,User")]
+    [Route("/api/accounts/{id}")]
+    public async Task<IResult> DeleteAccount(int id, CancellationToken token)
+    {
+        try
+        {
+            var currentUser = User.FindFirst(ClaimTypes.Actor)?.Value;
+            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (currentRole == "Admin" || currentUser == id.ToString())
+            {
+                await _accountService.DeleteAccount(id, token);
+                return Results.Ok();
+            }
+            return Results.Unauthorized();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return Results.NotFound(ex.Message);
         }
         catch (Exception ex)
         {
