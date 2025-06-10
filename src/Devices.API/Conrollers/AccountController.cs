@@ -85,7 +85,7 @@ public class AccountController : ControllerBase
     [HttpPut]
     [Authorize(Roles = "Admin,User")]
     [Route("/api/accounts/{id}")]
-    public async Task<IResult> UpdateAccount(int id, AccountByIdDto accountDto, CancellationToken token)
+    public async Task<IResult> UpdateAccount(int id, UpdateAccountDto accountDto, CancellationToken token)
     {
         try
         {
@@ -121,6 +121,22 @@ public class AccountController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return Results.NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(ex.Message);
+        }
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    [Route("/api/roles")]
+    public async Task<IResult> GetAllRoles(CancellationToken token)
+    {
+        try
+        {
+            var roles = await _accountService.GetAllRoles(token);
+            return Results.Ok(roles);
         }
         catch (Exception ex)
         {

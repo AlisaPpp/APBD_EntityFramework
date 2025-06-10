@@ -19,7 +19,7 @@ public class DeviceService : IDeviceService
         try
         {
             var devices = await _context.Devices.ToListAsync(token);
-            return devices.Select(MapToDto).ToList();
+            return devices.Select(MapDeviceToDto).ToList();
         }
         catch (Exception ex)
         {
@@ -41,22 +41,13 @@ public class DeviceService : IDeviceService
                 return null;
         
             var currentEmployee = device.DeviceEmployees.FirstOrDefault();
-
-            var person = currentEmployee?.Employee?.Person;
-        
+            
             var deviceDto = new DeviceByIdDto
             {
                 Name = device.Name,
-                DeviceType = device.DeviceType.Name,
                 IsEnabled = device.IsEnabled,
                 AdditionalProperties = JsonSerializer.Deserialize<object>(device.AdditionalProperties) ?? new {},
-                CurrentEmployee = person != null
-                    ? new AllEmployeesDto
-                    {
-                        Id = currentEmployee.Id,
-                        FullName = $"{person.FirstName} {person.MiddleName} {person.LastName}"
-                    }
-                    : null
+                Type = device.DeviceType.Name
             };
             return deviceDto;
         }
@@ -69,18 +60,18 @@ public class DeviceService : IDeviceService
     public async Task<bool> CreateDevice(CreateDeviceDto deviceDto, CancellationToken token)
     {
         if (deviceDto.Name == null) throw new ArgumentException("Device name cannot be null");
-        if (deviceDto.DeviceType == null) throw new ArgumentException("Device type cannot be null");
+        var deviceType = await _context.DeviceTypes.FirstOrDefaultAsync(x => x.Id == deviceDto.TypeId, token);
+        if (deviceType == null) 
+            throw new KeyNotFoundException($"Device type with id {deviceDto.TypeId} not found");
         
         try
         {
-            var deviceType = await _context.DeviceTypes.FirstOrDefaultAsync(x => x.Name == deviceDto.DeviceType, token);
-            if (deviceType == null) throw new ArgumentException("Device type is invalid");
             var device = new Device
             {
                 Name = deviceDto.Name,
-                DeviceType = deviceType,
                 IsEnabled = deviceDto.IsEnabled,
-                AdditionalProperties = JsonSerializer.Serialize(deviceDto.AdditionalProperties)
+                AdditionalProperties = JsonSerializer.Serialize(deviceDto.AdditionalProperties),
+                DeviceType = deviceType
             };
             await _context.Devices.AddAsync(device, token);
             await _context.SaveChangesAsync(token);
@@ -95,7 +86,7 @@ public class DeviceService : IDeviceService
     public async Task<bool> UpdateDevice(int id, CreateDeviceDto deviceDto, CancellationToken token)
     {
         if (deviceDto.Name == null) throw new ArgumentException("Device name cannot be null");
-        if (deviceDto.DeviceType == null) throw new ArgumentException("Device type cannot be null");
+
         try
         {
             var device = await _context.Devices
@@ -106,15 +97,16 @@ public class DeviceService : IDeviceService
                 .FirstOrDefaultAsync(x => x.Id == id, token);
             if (device == null)
                 throw new KeyNotFoundException($"Device with id {id} not found");
-            var deviceType = await _context.DeviceTypes.FirstOrDefaultAsync(x => x.Name == deviceDto.DeviceType, token);
-            if (deviceType == null) throw new ArgumentException("Device type is invalid");
+            var deviceType = await _context.DeviceTypes.FirstOrDefaultAsync(x => x.Id == deviceDto.TypeId, token);
+            if (deviceType == null) 
+                throw new KeyNotFoundException($"Device type with id {deviceDto.TypeId} not found");
             
             var newDevice = new Device
             {
                 Name = deviceDto.Name,
-                DeviceType = deviceType,
                 IsEnabled = deviceDto.IsEnabled,
-                AdditionalProperties = JsonSerializer.Serialize(deviceDto.AdditionalProperties)
+                AdditionalProperties = JsonSerializer.Serialize(deviceDto.AdditionalProperties),
+                DeviceType = deviceType,
             };
             device.Name = newDevice.Name;
             device.DeviceType = newDevice.DeviceType;
@@ -145,12 +137,35 @@ public class DeviceService : IDeviceService
         }
     }
 
-    private AllDevicesDto MapToDto(Device device)
+    public async Task<IEnumerable<AllDeviceTypesDto>> GetAllDeviceTypes(CancellationToken token)
+    {
+        try
+        {
+            var deviceTypes = await _context.DeviceTypes.ToListAsync(token);
+            return deviceTypes.Select(MapDeviceTypeToDto).ToList();
+
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException($"Error getting all device types", ex);
+        }
+    }
+
+    private AllDevicesDto MapDeviceToDto(Device device)
     {
         return new AllDevicesDto
         {
             Id = device.Id,
             Name = device.Name
+        };
+    }
+
+    private AllDeviceTypesDto MapDeviceTypeToDto(DeviceType deviceType)
+    {
+        return new AllDeviceTypesDto()
+        {
+            Id = deviceType.Id,
+            Name = deviceType.Name
         };
     }
     

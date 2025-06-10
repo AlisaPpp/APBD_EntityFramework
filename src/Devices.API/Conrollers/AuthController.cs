@@ -27,7 +27,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Auth(LoginDto user, CancellationToken cancellationToken)
     {
         var foundUser = await _context.Accounts.Include(a => a.Role)
-            .FirstOrDefaultAsync(a => a.Username.Equals(user.Username), cancellationToken);
+            .FirstOrDefaultAsync(a => a.Username.Equals(user.Login), cancellationToken);
         if (foundUser == null)
         {
             return Unauthorized();

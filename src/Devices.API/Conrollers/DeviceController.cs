@@ -125,4 +125,20 @@ public class DeviceController : ControllerBase
             return Results.Problem(ex.Message);
         }
     }
+
+    [HttpGet]
+    [Route("/api/devices/types")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IResult> GetAllDeviceTypes(CancellationToken token)
+    {
+        try
+        {
+            var deviceTypes = await _deviceService.GetAllDeviceTypes(token);
+            return Results.Ok(deviceTypes);
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem(ex.Message);
+        }
+    }
 }

@@ -2,6 +2,7 @@ using Devices.API;
 using Devices.Entities.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using KeyNotFoundException = System.Collections.Generic.KeyNotFoundException;
 
 namespace Devices.Services;
 
@@ -20,7 +21,7 @@ public class AccountService : IAccountService
         try
         {
             var accounts = await _context.Accounts.ToListAsync(token);
-            return accounts.Select(MapToDto).ToList();
+            return accounts.Select(MapAccountToDto).ToList();
 
         }
         catch (Exception ex)
@@ -36,10 +37,11 @@ public class AccountService : IAccountService
             var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == id, token);
             if (account == null)
                 return null;
+            var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == account.RoleId, token);
             var accountDto = new AccountByIdDto
             {
                 Username = account.Username,
-                Password = account.Password
+                RoleName = role.Name
             };
             return accountDto;
         }
@@ -52,9 +54,9 @@ public class AccountService : IAccountService
     public async Task<bool> CreateAccount(CreateAccountDto createAccountDto, CancellationToken token)
     {
         
-        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "User", token);
+        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == createAccountDto.RoleId, token);
         if (role == null)
-            throw new ArgumentException($"Default role 'User' not found");
+            throw new KeyNotFoundException($"Role with id {createAccountDto.RoleId} not found");
             
         var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == createAccountDto.EmployeeId, token);
         if (employee == null)
@@ -80,7 +82,7 @@ public class AccountService : IAccountService
         }
     }
 
-    public async Task<bool> UpdateAccount(int id, AccountByIdDto updateAccountDto, CancellationToken token)
+    public async Task<bool> UpdateAccount(int id, UpdateAccountDto updateAccountDto, CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(updateAccountDto.Username))
             throw new ArgumentException("Username cannot be null or empty");
@@ -126,14 +128,35 @@ public class AccountService : IAccountService
             throw new ApplicationException($"Error deleting account", ex);
         }
     }
+
+    public async Task<IEnumerable<RoleDto>> GetAllRoles(CancellationToken token)
+    {
+        try
+        {
+            var roles = await _context.Roles.ToListAsync(token);
+            return roles.Select(MapRoleToDto).ToList();
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException($"Error getting all roles", ex);
+        }
+    }
     
-    private AllAccountsDto MapToDto(Account account)
+    private AllAccountsDto MapAccountToDto(Account account)
     {
         return new AllAccountsDto()
         {
             Id = account.Id,
             Username = account.Username,
-            Password = account.Password
+        };
+    }
+
+    private RoleDto MapRoleToDto(Role role)
+    {
+        return new RoleDto()
+        {
+            Id = role.Id,
+            Name = role.Name,
         };
     }
 }

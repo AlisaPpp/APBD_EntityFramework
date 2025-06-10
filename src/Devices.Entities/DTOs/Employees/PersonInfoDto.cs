@@ -2,7 +2,7 @@ namespace Devices.Entities.DTOs;
 
 public class PersonInfoDto
 {
-    public int Id { get; set; }
+    //public int Id { get; set; }
 
     public string PassportNumber { get; set; } = null!;
 
