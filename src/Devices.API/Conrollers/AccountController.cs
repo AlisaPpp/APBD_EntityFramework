@@ -85,7 +85,7 @@ public class AccountController : ControllerBase
     [HttpPut]
     [Authorize(Roles = "Admin,User")]
     [Route("/api/accounts/{id}")]
-    public async Task<IResult> UpdateAccount(int id, CreateAccountDto accountDto, CancellationToken token)
+    public async Task<IResult> UpdateAccount(int id, AccountByIdDto accountDto, CancellationToken token)
     {
         try
         {
@@ -93,10 +93,7 @@ public class AccountController : ControllerBase
             var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
             if (currentRole == "Admin" || currentUserId.Equals(id.ToString()))
             {
-                if (currentRole != "Admin")
-                    accountDto.Role = null;
-                
-                await _accountService.UpdateAccount(id, currentRole == "Admin", accountDto, token);
+                await _accountService.UpdateAccount(id, accountDto, token);
                 return Results.Ok();
             }
             return Results.Unauthorized();
@@ -112,20 +109,14 @@ public class AccountController : ControllerBase
     }
 
     [HttpDelete]
-    [Authorize(Roles = "Admin,User")]
+    [Authorize(Roles = "Admin")]
     [Route("/api/accounts/{id}")]
     public async Task<IResult> DeleteAccount(int id, CancellationToken token)
     {
         try
         {
-            var currentUser = User.FindFirst(ClaimTypes.Actor)?.Value;
-            var currentRole = User.FindFirst(ClaimTypes.Role)?.Value;
-            if (currentRole == "Admin" || currentUser == id.ToString())
-            {
-                await _accountService.DeleteAccount(id, token);
-                return Results.Ok();
-            }
-            return Results.Unauthorized();
+            await _accountService.DeleteAccount(id, token);
+            return Results.Ok();
         }
         catch (KeyNotFoundException ex)
         {

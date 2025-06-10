@@ -25,7 +25,6 @@ public class TokenService : ITokenService
         {
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Sub, username),
-            new(ClaimTypes.Name, username),
             new(ClaimTypes.Actor, userId.ToString()),
             new("role", role)
         };
