@@ -1,5 +1,6 @@
 using System.Text;
 using Devices.API;
+using Devices.API.Helpers.Middleware;
 using Devices.Services;
 using Devices.Entities.DTOs;
 using Devices.Services.Options;
@@ -52,8 +53,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-builder.Services.AddAuthentication();
-builder.Services.AddAuthorization();
+app.UseMiddleware<DeviceValidationMiddleware>();
 
 app.MapControllers();
 

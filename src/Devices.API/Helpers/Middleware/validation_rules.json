@@ -1,0 +1,41 @@
+{
+    "validations":[
+        {
+            "type": "PC",
+            "preRequestName": "isEnabled",
+            "preRequestValue": "true",
+            "rules": [
+                {
+                    "paramName": "operationSystem",
+                    "regex": "^[a-zA-Z0-9 ]{3,}$"
+                }
+            ]
+        },
+        {
+            "type": "Embedded",
+            "preRequestName": "isEnabled",
+            "preRequestValue": "true",
+            "rules": [
+                {
+                    "paramName": "networkName",
+                    "regex": "^[a-zA-Z0-9 ]{6,}$"
+                },
+                {
+                    "paramName": "ipAddress",
+                    "regex": "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+                }
+            ]
+        },
+        {
+            "type": "Smartwatch",
+            "preRequestName": "isEnabled",
+            "preRequestValue": "true",
+            "rules": [
+                {
+                    "paramName": "batteryLevel",
+                    "regex": "[1-9]{2}%|100%"
+                }
+            ]
+        }
+    ]
+}
