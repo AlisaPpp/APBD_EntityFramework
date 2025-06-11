@@ -15,11 +15,13 @@ public class AuthController : ControllerBase
     private readonly DeviceDbContext _context;
     private readonly ITokenService _tokenService;
     private readonly PasswordHasher<Account> _passwordHasher = new();
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(DeviceDbContext context, ITokenService tokenService)
+    public AuthController(DeviceDbContext context, ITokenService tokenService, ILogger<AuthController> logger)
     {
         _context = context;
         _tokenService = tokenService;
+        _logger = logger;
     }
     
     [HttpPost]
@@ -30,6 +32,7 @@ public class AuthController : ControllerBase
             .FirstOrDefaultAsync(a => a.Username.Equals(user.Login), cancellationToken);
         if (foundUser == null)
         {
+            _logger.LogError($"User with username {user.Login} does not exist");
             return Unauthorized();
         }
             
@@ -37,6 +40,7 @@ public class AuthController : ControllerBase
         
         if (verificationResult == PasswordVerificationResult.Failed)
         {
+            _logger.LogError($"User with username {user.Login} provided incorrect password");
             return Unauthorized();
         }
 

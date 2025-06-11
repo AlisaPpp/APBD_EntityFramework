@@ -12,10 +12,12 @@ namespace Devices.API;
 public class AccountController : ControllerBase
 {
     private readonly IAccountService _accountService;
+    private readonly ILogger<AccountController> _logger;
 
-    public AccountController(IAccountService accountService)
+    public AccountController(IAccountService accountService, ILogger<AccountController> logger)
     {
         _accountService = accountService;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -30,6 +32,7 @@ public class AccountController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Error occurred while getting all accounts.");
             return Results.Problem(ex.Message);
         }
     }
@@ -47,13 +50,17 @@ public class AccountController : ControllerBase
             {
                 var account = await _accountService.GetAccountById(id, token);
                 if (account == null)
+                {
+                    _logger.LogWarning($"Account with id {id} not found");
                     return Results.NotFound($"Account with Id {id} not found.");
+                }
                 return Results.Ok(account);
             }
             return Results.Unauthorized();
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, $"Error occurred while getting account by id {id}");
             return Results.Problem(ex.Message);
         }
     }
@@ -70,14 +77,18 @@ public class AccountController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
+            _logger.LogWarning(ex,
+                $"Employee with id {accountDto.EmployeeId}/ Role with id {accountDto.RoleId} not found when adding new account");
             return Results.NotFound(ex.Message);
         }
         catch (ArgumentException ex)
         {
+            _logger.LogWarning(ex, $"Username or password cannot be null or empty");
             return Results.BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, $"Error occurred while adding new account");
             return Results.Problem(ex.Message);
         }
     }
@@ -96,15 +107,24 @@ public class AccountController : ControllerBase
                 await _accountService.UpdateAccount(id, accountDto, token);
                 return Results.Ok();
             }
+            
+            _logger.LogWarning($"User with id {int.Parse(currentUserId)} has no authority to update account with id {id}");
             return Results.Unauthorized();
         }
         catch (KeyNotFoundException ex)
         {
+            _logger.LogWarning(ex, $"Account with id {id} not found");
             return Results.NotFound(ex.Message);
         }
         catch (ArgumentException ex)
         {
+            _logger.LogWarning(ex, $"Username or password cannot be null or empty");
             return Results.BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error occurred while updating account with id {id}");
+            return Results.Problem(ex.Message);
         }
     }
 
@@ -120,10 +140,12 @@ public class AccountController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
+            _logger.LogWarning(ex, $"Account with id {id} not found");
             return Results.NotFound(ex.Message);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, $"Error occurred while deleting account with id {id}");
             return Results.Problem(ex.Message);
         }
     }
@@ -140,6 +162,7 @@ public class AccountController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, $"Error occurred while getting all roles");
             return Results.Problem(ex.Message);
         }
     }

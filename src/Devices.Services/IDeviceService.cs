@@ -11,4 +11,5 @@ public interface IDeviceService
     public Task<bool> DeleteDevice(int id, CancellationToken token);
     public Task<bool> IsDeviceAssignedToUser(int deviceId, int accountId, CancellationToken token);
     public Task<IEnumerable<AllDeviceTypesDto>> GetAllDeviceTypes(CancellationToken token);
+    public Task<string?> GetDeviceTypeNameById(int id, CancellationToken token);
 }

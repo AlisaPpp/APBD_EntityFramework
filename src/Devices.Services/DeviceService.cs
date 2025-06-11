@@ -85,7 +85,7 @@ public class DeviceService : IDeviceService
 
     public async Task<bool> UpdateDevice(int id, CreateDeviceDto deviceDto, CancellationToken token)
     {
-        if (deviceDto.Name == null) throw new ArgumentException("Device name cannot be null");
+        if (string.IsNullOrEmpty(deviceDto.Name)) throw new ArgumentException("Device name cannot be null");
 
         try
         {
@@ -180,5 +180,14 @@ public class DeviceService : IDeviceService
             return false;
 
         return account.Employee.DeviceEmployees.Any(de => de.DeviceId == deviceId);
+    }
+
+    public async Task<string?> GetDeviceTypeNameById(int id, CancellationToken token)
+    {
+        var type = await _context.DeviceTypes
+            .Where(x => x.Id == id)
+            .Select(x => x.Name)
+            .FirstOrDefaultAsync(token);
+        return type;
     }
 }

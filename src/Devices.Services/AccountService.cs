@@ -53,6 +53,11 @@ public class AccountService : IAccountService
 
     public async Task<bool> CreateAccount(CreateAccountDto createAccountDto, CancellationToken token)
     {
+        if (string.IsNullOrWhiteSpace(createAccountDto.Username))
+            throw new ArgumentException("Username cannot be null or empty");
+
+        if (string.IsNullOrWhiteSpace(createAccountDto.Password))
+            throw new ArgumentException("Password cannot be null or empty");
         
         var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == createAccountDto.RoleId, token);
         if (role == null)

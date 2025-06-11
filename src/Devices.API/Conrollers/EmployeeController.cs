@@ -10,10 +10,12 @@ namespace Devices.API;
 public class EmployeeController : ControllerBase
 {
     private readonly IEmployeeService _employeeService;
+    private readonly ILogger<EmployeeController> _logger;
 
-    public EmployeeController(IEmployeeService employeeService)
+    public EmployeeController(IEmployeeService employeeService, ILogger<EmployeeController> logger)
     {
         _employeeService = employeeService;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -27,6 +29,7 @@ public class EmployeeController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, $"Error occurred while getting all employees");
             return Results.Problem(ex.Message);
         }
     }
@@ -39,11 +42,15 @@ public class EmployeeController : ControllerBase
         {
             var employee = await _employeeService.GetEmployeeById(id, token);
             if (employee == null)
+            {
+                _logger.LogError($"Employee with id {id} not found");
                 return Results.NotFound($"Employee with Id {id} not found.");
+            }
             return Results.Ok(employee);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, $"Error occurred while getting employee with id {id}");
             return Results.Problem(ex.Message);
         }
     }
@@ -59,10 +66,12 @@ public class EmployeeController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
+            _logger.LogWarning(ex, $"When creating employee, position id {createEmployeeDto.PositionId} was not found");
             return Results.NotFound(ex.Message);
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, $"Error occurred while creating employee");
             return Results.Problem(ex.Message);
         }
     }
@@ -78,6 +87,7 @@ public class EmployeeController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, $"Error occurred while getting all positions");
             return Results.Problem(ex.Message);
         }
     }
